@@ -5,8 +5,7 @@ from time import sleep
 
 pixel = neopixel.NeoPixel(machine.Pin(15), 12)
 
-
-def color(ids, colors = (0, 0, 0)):
+def setColor(ids, colors = (0, 0, 0)):
   if ids == 'off' or 'all':
     for index in range(0, 12):
       pixel[index] = colors
@@ -17,10 +16,36 @@ def color(ids, colors = (0, 0, 0)):
 
   pixel.write()
 
-def startup():
-  color((3, 9), (22, 224, 59))
-  sleep(0.10)
-  color('off')
-  sleep(0.10)
+# Define a simple method which connects to your WiFi
+def doConnect(ssid, password):
+    import network
 
-startup()
+    # Disable the ESP's built-in access point.
+    ap = network.WLAN(network.AP_IF)
+    if ap.active():
+        ap.active(False)
+
+    # Enable the ESP's station mode for connecting as a client.
+    wlan = network.WLAN(network.STA_IF)
+
+    wlan.active(True)
+    # Check if we are already connected.
+    if not wlan.isconnected():
+        # Connect with the provided credentials.
+        print('Connecting to network...')
+        wlan.ifconfig(('192.168.168.123', '255.255.255.0', '192.168.168.1', '8.8.8.8'))
+        wlan.connect(ssid, password)
+        while not wlan.isconnected():
+            pass
+
+    # Finally, print out the current netconfig.
+    print('Network config:', wlan.ifconfig())
+
+def startupBoot():
+  color((3, 9), (22, 224, 59))
+  sleep(0.30)
+  color('off')
+
+  doConnect('LANDownUnder', 'PASSWORD')
+
+startupBoot()
