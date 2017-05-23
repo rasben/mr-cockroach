@@ -13,6 +13,10 @@ displayLine2 = ''
 displayLine3 = ''
 
 def setDisplay():
+  global displayLine1;
+  global displayLine2;
+  global displayLine3;
+
   oled.fill(0)
   oled.text(displayLine1, 0, 0)
   oled.text(displayLine2, 0, 10)
@@ -55,9 +59,9 @@ def setEmotion(emotionType):
     setColor('off')
 
   elif emotionType == 'sad':
-    colors = (235, 66, 244)
+    colors = (56, 82, 124)
 
-    for index in range(0, 2):
+    for index in range(0, 4):
       setColor((1,2), colors)
       sleep(0.5);
       setColor('off')
@@ -70,26 +74,31 @@ def setEmotion(emotionType):
       sleep(0.3);
       setColor('off')
 
+def buttonListen():
+  global buttonValue
+
+  while True:
+    if (button.value != buttonValue):
+      buttonValue = button.value()
+
+      break
+
 def startServer():
+  global displayLine1;
+  global displayLine2;
+  global buttonValue
+
+  print('startServer()')
+
   addr = socket.getaddrinfo('0.0.0.0', 80)[0][-1]
 
   s = socket.socket()
   s.bind(addr)
   s.listen(1)
 
-def buttonListen():
   while True:
-    if (button.value != buttonValue):
-      buttonValue = button.value()
-      serverListen()
-      break
+    print('startServer() loop begin')
 
-def serverListen():
-  global displayLine1;
-  global displayLine2;
-  global buttonValue
-
-  while True:
     # If the button has been pressed (value changed), we'll stop the server.
     if (button.value() != buttonValue):
       buttonValue = button.value()
@@ -107,20 +116,28 @@ def serverListen():
     commandParts = commandPattern.split(reqParts[1]);
 
     # Ignore first blank result.
-    commandPartsLen = (len(commandParts) - 1)
+    commandPartsLen = int((len(commandParts) - 1))
+
+    print(reqLine)
+    print(reqParts)
+
+    print(commandParts)
+    print(commandPartsLen)
+
+    print('Command:' + commandParts[1])
 
     # Command recieved
     if (commandPartsLen > 0):
-      command = commandParts[1]
+      command = str(commandParts[1])
 
-      if (command == 'emotion' & commandPartsLen >= 2):
+      if ((command == 'emotion') and (commandPartsLen >= 2)):
         cl.send('Starting emotion.');
 
         emotion = commandParts[2]
 
         setEmotion(emotion)
 
-      elif (command == 'display' & commandPartsLen >= 3):
+      elif ((command == 'display') and (commandPartsLen >= 3)):
         cl.send('Starting display.');
 
         displayLine1 = commandParts[2]
@@ -131,23 +148,23 @@ def serverListen():
 
         setDisplay()
 
-      elif (command == 'color' & commandPartsLen >= 2):
+      elif ((command == 'color') and (commandPartsLen >= 2)):
         if (commandPartsLen >= 5):
-          colorR = commandParts[3]
-          colorG = commandParts[4]
-          colorB = commandParts[5]
+          colorR = int(commandParts[3])
+          colorG = int(commandParts[4])
+          colorB = int(commandParts[5])
 
         if (commandParts[2] == 'off'):
           cl.send('Starting color:off.');
 
           setColor('off')
 
-        elif (commandParts[2] == 'on' & commandPartsLen >= 5):
+        elif ((commandParts[2] == 'on') and (commandPartsLen >= 5)):
           cl.send('Starting color:on.');
 
-          setColor('all', colorR, colorG, colorB)
+          setColor('all', (colorR, colorG, colorB))
 
-        elif (commandParts[2] == 'blink' & commandPartsLen >= 8):
+        elif ((commandParts[2] == 'blink') and (commandPartsLen >= 8)):
           cl.send('Starting color:blink.');
 
           timeOn = int(commandParts[6]);
@@ -203,9 +220,30 @@ def introduction():
   setEmotion('angry')
 
 def startupMain():
-  #introduction();
+  global displayLine1;
+  global displayLine2;
 
-  #startServer()
-  #serverListen()
+  print('startupMain()')
+  #introduction();
+  setEmotion('surprised')
+  displayLine1 = 'My purpose is'
+  displayLine2 = 'to pass butter?'
+  setDisplay()
+
+  sleep(3)
+
+  displayLine1 = 'I dont even'
+  displayLine2 = 'have arms!'
+  setDisplay()
+
+  setEmotion('sad')
+
+  if (ssidExists('Reload')):
+    doConnect('Reload', 'reloadmenow')
+
+  elif (ssidExists('LANDownUnder')):
+    doConnect('LANDownUnder', 'PASSWORD')
+
+  startServer()
 
 startupMain()

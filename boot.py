@@ -13,14 +13,16 @@ def setColor(ids, colors = (0, 0, 0)):
 
   else:
     for index in range(0, len(ids)):
-      pixel[ids[index]] = colors
+      pixel[ids[index]] = int(colors)
 
   pixel.write()
 
 def ssidExists(ssid):
-  sta_if = network.WLAN(network.STA_IF)
+  wlan = network.WLAN(network.STA_IF)
 
-  for networkElement in sta_if.scan():
+  wlan.active(True)
+
+  for networkElement in wlan.scan():
     if (networkElement[0].decode("utf-8") == ssid):
       return True
 
@@ -41,7 +43,7 @@ def doConnect(ssid, password):
     if not wlan.isconnected():
         # Connect with the provided credentials.
         print('Connecting to network...')
-        wlan.ifconfig(('192.168.168.123', '255.255.255.0', '192.168.168.1', '8.8.8.8'))
+        wlan.ifconfig(('192.168.1.123', '255.255.255.0', '192.168.1.1', '8.8.8.8'))
         wlan.connect(ssid, password)
         while not wlan.isconnected():
             pass
@@ -53,8 +55,5 @@ def startupBoot():
   setColor((3, 9), (22, 224, 59))
   sleep(0.30)
   setColor('off')
-
-  #if (ssidExists('Reload')):
-    #doConnect('Reload', 'reloadmenow')
 
 startupBoot()
