@@ -1,5 +1,6 @@
 import machine
 import neopixel
+import network
 import time
 from time import sleep
 
@@ -16,10 +17,17 @@ def setColor(ids, colors = (0, 0, 0)):
 
   pixel.write()
 
+def ssidExists(ssid):
+  sta_if = network.WLAN(network.STA_IF)
+
+  for networkElement in sta_if.scan():
+    if (networkElement[0].decode("utf-8") == ssid):
+      return True
+
+  return False
+
 # Define a simple method which connects to your WiFi
 def doConnect(ssid, password):
-    import network
-
     # Disable the ESP's built-in access point.
     ap = network.WLAN(network.AP_IF)
     if ap.active():
@@ -42,10 +50,11 @@ def doConnect(ssid, password):
     print('Network config:', wlan.ifconfig())
 
 def startupBoot():
-  color((3, 9), (22, 224, 59))
+  setColor((3, 9), (22, 224, 59))
   sleep(0.30)
-  color('off')
+  setColor('off')
 
-  doConnect('LANDownUnder', 'PASSWORD')
+  #if (ssidExists('Reload')):
+    #doConnect('Reload', 'reloadmenow')
 
 startupBoot()

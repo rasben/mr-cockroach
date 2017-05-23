@@ -2,6 +2,7 @@ import ssd1306
 import ure
 import utime
 import socket
+import machine
 
 i2c = machine.I2C(-1, scl=machine.Pin(5), sda=machine.Pin(4))
 oled = ssd1306.SSD1306_I2C(128, 32, i2c)
@@ -11,8 +12,18 @@ displayLine1 = ''
 displayLine2 = ''
 displayLine3 = ''
 
+def setDisplay():
+  oled.fill(0)
+  oled.text(displayLine1, 0, 0)
+  oled.text(displayLine2, 0, 10)
+  oled.text(displayLine3, 0, 20)
+  oled.show()
+
 def setFace(string):
-  displayLine3 = string
+  global displayLine3;
+
+  displayLine3 = '   ' + string
+
   setDisplay()
 
 def setEmotion(emotionType):
@@ -59,13 +70,6 @@ def setEmotion(emotionType):
       sleep(0.3);
       setColor('off')
 
-def setDisplay():
-  oled.fill(0)
-  oled.text(displayLine1, 0, 0)
-  oled.text(displayLine2, 0, 10)
-  oled.text(displayLine3, 0, 20)
-  oled.show()
-
 def startServer():
   addr = socket.getaddrinfo('0.0.0.0', 80)[0][-1]
 
@@ -81,9 +85,13 @@ def buttonListen():
       break
 
 def serverListen():
+  global displayLine1;
+  global displayLine2;
+  global buttonValue
+
   while True:
     # If the button has been pressed (value changed), we'll stop the server.
-    if (button.value != buttonValue):
+    if (button.value() != buttonValue):
       buttonValue = button.value()
       buttonListen()
       break
@@ -121,7 +129,7 @@ def serverListen():
         if (commandPartsLen >= 4):
           displayLine3 = commandParts[4]
 
-        setScreen()
+        setDisplay()
 
       elif (command == 'color' & commandPartsLen >= 2):
         if (commandPartsLen >= 5):
@@ -161,26 +169,29 @@ def serverListen():
         cl.close();
 
 def introduction():
+  global displayLine1;
+  global displayLine2;
+
   setColor('off')
 
   displayLine1 = 'Hello!'
   displayLine2 = 'Im Mr Cockroach!'
 
-  setScreen()
+  setDisplay()
   setEmotion('happy')
 
   displayLine1 = ''
   displayLine2 = 'How U doin?'
 
-  setScreen()
+  setDisplay()
   setEmotion('cheeky')
 
   sleep(2)
 
-  displayLine1 = '? What do you mean'
-  displayLine2 = 'no thanks?'
+  displayLine1 = '? What do you'
+  displayLine2 = 'mean no thanks?'
 
-  setScreen()
+  setDisplay()
   setEmotion('surprised')
 
   sleep(2)
@@ -188,11 +199,13 @@ def introduction():
   displayLine1 = 'Noone says no'
   displayLine2 = 'to Mr Cockroach!'
 
-  setScreen()
+  setDisplay()
   setEmotion('angry')
 
 def startupMain():
-  startServer()
-  serverListen()
+  #introduction();
+
+  #startServer()
+  #serverListen()
 
 startupMain()
